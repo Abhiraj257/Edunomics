@@ -1,10 +1,45 @@
 import React, { Component } from 'react'
+import axios from 'axios'
+import { connect } from 'react-redux'
+import { Redirect } from 'react-router-dom'
 
 class Login extends Component {
-  // state = {
-  //   fields : [{type: 'email', label: 'email', value: ''}, {type: 'password', label: 'Password', val: ''}]
-  // }
+  state = {
+    pass: '',
+    email: ''
+  }
+
+  valueChange = (e, field) => {
+    let val = e.target.value
+    // console.log(val)
+    if (field === 'pass') this.setState({ pass: val })
+    else this.setState({ email: val })
+  }
+
+  onSubmitHandler = e => {
+    e.preventDefault()
+    const data = {
+      email: this.state.email,
+      password: this.state.pass,
+      returnSecureToken: true
+    }
+    axios
+      .post(
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAnAnI4PUeaGY4FzLkYyi6m2Yy0aSmd46U',
+        data
+      )
+      .then(res => {
+        this.props.onSuccess(res.data.idToken, res.data.localId)
+        this.props.url = '/account'
+      })
+      .catch(error => {
+        this.props.onFail()
+      })
+  }
+
   render() {
+    console.log(this.state.pass, this.state.email)
+
     return (
       <div
         style={{
@@ -15,7 +50,9 @@ class Login extends Component {
           width: '30rem',
           textAlign: 'center'
         }}>
+        <Redirect to={this.props.url} />
         <form
+          onSubmit={this.onSubmitHandler}
           style={{ textAlign: 'left', fontSize: '2.3rem', color: '#fff' }}
           action=''>
           <div style={{ marginBottom: '2rem' }}>
@@ -29,6 +66,9 @@ class Login extends Component {
                 border: 'none',
                 outline: 'none',
                 width: '100%'
+              }}
+              onChange={e => {
+                this.valueChange(e, 'email')
               }}
               type='email'
               placeholder='Email address'
@@ -46,6 +86,9 @@ class Login extends Component {
                 outline: 'none',
                 width: '100%'
               }}
+              onChange={e => {
+                this.valueChange(e, 'pass')
+              }}
               type='password'
               placeholder='Email address'
             />
@@ -60,7 +103,8 @@ class Login extends Component {
               border: '.1rem solid white',
               backgroundColor: 'rgba(255,255,255, 0.5)'
             }}
-            type='submit'>
+            type='submit'
+            onClick={this.onSubmitHandler}>
             Log In
           </button>
         </form>
@@ -69,4 +113,18 @@ class Login extends Component {
   }
 }
 
-export default Login
+const mapStateToProps = state => {
+  return {
+    url: state.url
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    onSuccess: (token, id) =>
+      dispatch({ type: 'SUCCESS', token: token, id: id }),
+    onFail: () => dispatch({ type: 'FAIL' })
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login)

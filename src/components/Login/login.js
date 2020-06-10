@@ -29,6 +29,7 @@ class Login extends Component {
         data
       )
       .then(res => {
+        console.log(res)
         this.props.onSuccess(res.data.idToken, res.data.localId)
         this.props.url = '/account'
       })
@@ -38,8 +39,6 @@ class Login extends Component {
   }
 
   render() {
-    console.log(this.state.pass, this.state.email)
-
     return (
       <div
         style={{
